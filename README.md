@@ -66,5 +66,5 @@ lib/              JUnit and Hamcrest jar files
 
 Oracle (2024) *Java SE API documentation*. Available at: https://docs.oracle.com/en/java/javase/17/docs/api/ (I used the Pattern, Matcher and Files classes for reading the JSON file).
 
-Made by Amukelani Gift Ndlovu.
+
 
