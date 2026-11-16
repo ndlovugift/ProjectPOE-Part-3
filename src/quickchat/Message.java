@@ -299,6 +299,42 @@ public class Message {
         return found;
     }
 
+    /** 2e. Deletes a message using its hash from every array. */
+    public static String deleteByHash(String hash) {
+        int index = MESSAGE_HASHES.indexOf(hash);
+        if (index == -1) return "No message found with hash " + hash + ".";
+        Message m = ALL.get(index);
+        boolean wasStored = STORED.remove(m);
+        SENT.remove(m);
+        DISREGARDED.remove(m);
+        ALL.remove(index);
+        MESSAGE_IDS.remove(index);
+        MESSAGE_HASHES.remove(index);
+        if (wasStored) storeMessage(); // keep the JSON file in step
+        return "Message \"" + m.message + "\" successfully deleted.";
+    }
+
+    /** Report of all sent messages: hash, recipient and message. */
+    public static String displayReport() {
+        if (SENT.isEmpty()) return "There are no sent messages.";
+        StringBuilder sb = new StringBuilder("--- Sent Messages Report ---").append(System.lineSeparator());
+        for (Message m : SENT) {
+            sb.append("Message Hash: ").append(m.messageHash)
+                    .append("\nRecipient: ").append(m.recipient)
+                    .append("\nMessage: ").append(m.message)
+                    .append(System.lineSeparator()).append(System.lineSeparator());
+        }
+        return sb.toString();
+    }
+
+    /** 2f. Full details of every stored message. */
+    public static String displayStoredReport() {
+        if (STORED.isEmpty()) return "There are no stored messages.";
+        StringBuilder sb = new StringBuilder("--- Stored Messages Report ---").append(System.lineSeparator());
+        for (Message m : STORED) sb.append(m.details()).append(System.lineSeparator());
+        return sb.toString();
+    }
+
     public String getMessageID() { return messageID; }
     public String getMessageHash() { return messageHash; }
     public String getSender() { return sender; }

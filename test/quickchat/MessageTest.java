@@ -179,6 +179,42 @@ public class MessageTest {
     }
 
     @Test
+    public void deleteMessageUsingHash() {
+        loadTestData();
+        String result = Message.deleteByHash(m2.getMessageHash());
+        assertEquals("Message \"" + T2 + "\" successfully deleted.", result);
+        assertEquals(Arrays.asList(T5), Message.storedMessageTexts());
+        assertEquals(4, Message.messageHashes().size());
+    }
+
+    @Test
+    public void deleteMessageHashNotFound() {
+        loadTestData();
+        assertEquals("No message found with hash NOPE.", Message.deleteByHash("NOPE"));
+    }
+
+    @Test
+    public void displaySentReport() {
+        loadTestData();
+        String report = Message.displayReport();
+        assertTrue(report.contains("Message Hash: " + m1.getMessageHash()));
+        assertTrue(report.contains("Recipient: +27834557896"));
+        assertTrue(report.contains("Message: " + T1));
+        assertTrue(report.contains("Message Hash: " + m4.getMessageHash()));
+        assertTrue(report.contains("Message: " + T4));
+        assertFalse(report.contains(T2));
+    }
+
+    @Test
+    public void displayStoredReportAndSenderRecipient() {
+        loadTestData();
+        String report = Message.displayStoredReport();
+        assertTrue(report.contains("Message ID: 1000000002"));
+        assertTrue(report.contains(T5));
+        assertTrue(Message.displaySenderAndRecipient().contains("Recipient: +27838884567"));
+    }
+
+    @Test
     public void storedMessagesReadBackFromJson() throws IOException {
         File file = File.createTempFile("quickchat-json", ".json");
         file.deleteOnExit();
