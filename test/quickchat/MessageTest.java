@@ -146,6 +146,39 @@ public class MessageTest {
     }
 
     @Test
+    public void displayLongestMessage() {
+        loadTestData();
+        assertEquals(T2, Message.longestMessage());
+    }
+
+    @Test
+    public void displayLongestStoredMessage() {
+        loadTestData();
+        assertEquals(T2, Message.longestStoredMessage());
+    }
+
+    @Test
+    public void searchForMessageID() {
+        loadTestData();
+        Message found = Message.findByMessageID("1000000004");
+        assertEquals(T4, found.getMessage());
+        assertEquals("0838884567", found.getRecipient());
+        assertEquals("Recipient: 0838884567\nMessage: " + T4, Message.searchByMessageID("1000000004"));
+    }
+
+    @Test
+    public void searchForMessageIDNotFound() {
+        loadTestData();
+        assertEquals("No message found with ID 9999999999.", Message.searchByMessageID("9999999999"));
+    }
+
+    @Test
+    public void searchMessagesForRecipient() {
+        loadTestData();
+        assertEquals(Arrays.asList(T2, T5), Message.searchByRecipient("+27838884567"));
+    }
+
+    @Test
     public void storedMessagesReadBackFromJson() throws IOException {
         File file = File.createTempFile("quickchat-json", ".json");
         file.deleteOnExit();

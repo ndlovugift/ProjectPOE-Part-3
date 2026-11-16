@@ -252,6 +252,53 @@ public class Message {
         return out;
     }
 
+    /** 2a. Sender and recipient of every stored message. */
+    public static String displaySenderAndRecipient() {
+        if (STORED.isEmpty()) return "There are no stored messages.";
+        StringBuilder sb = new StringBuilder();
+        for (Message m : STORED) {
+            sb.append("Sender: ").append(m.sender).append(" | Recipient: ").append(m.recipient)
+                    .append(System.lineSeparator());
+        }
+        return sb.toString();
+    }
+
+    /** Longest message across every message captured (sent, stored and disregarded). */
+    public static String longestMessage() { return longestOf(ALL); }
+
+    /** 2b. Longest stored message. */
+    public static String longestStoredMessage() { return longestOf(STORED); }
+
+    private static String longestOf(List<Message> list) {
+        String longest = "";
+        for (Message m : list) {
+            if (m.message.length() > longest.length()) longest = m.message;
+        }
+        return longest;
+    }
+
+    /** Looks up a message by ID using the Message ID array (null if not found). */
+    public static Message findByMessageID(String id) {
+        int index = MESSAGE_IDS.indexOf(id);
+        return index == -1 ? null : ALL.get(index);
+    }
+
+    /** 2c. Search for a message ID and display the recipient and message. */
+    public static String searchByMessageID(String id) {
+        Message m = findByMessageID(id);
+        if (m == null) return "No message found with ID " + id + ".";
+        return "Recipient: " + m.recipient + "\nMessage: " + m.message;
+    }
+
+    /** 2d. All messages sent or stored for one recipient. */
+    public static List<String> searchByRecipient(String recipient) {
+        List<String> found = new ArrayList<>();
+        for (Message m : ALL) {
+            if (m.recipient.equals(recipient) && !DISREGARDED.contains(m)) found.add(m.message);
+        }
+        return found;
+    }
+
     public String getMessageID() { return messageID; }
     public String getMessageHash() { return messageHash; }
     public String getSender() { return sender; }
