@@ -144,4 +144,19 @@ public class MessageTest {
         assertEquals(5, Message.messageHashes().size());
         assertEquals(m2.getMessageHash(), Message.messageHashes().get(1));
     }
+
+    @Test
+    public void storedMessagesReadBackFromJson() throws IOException {
+        File file = File.createTempFile("quickchat-json", ".json");
+        file.deleteOnExit();
+        Message.setStorageFile(file);
+        new Message("1000000002", 1, "+27838884567", T2).SentMessage(Message.STORE);
+        new Message("1000000005", 4, "+27838884567", T5).SentMessage(Message.STORE);
+
+        Message.resetState(); // empty the arrays, then read the file back in
+        assertEquals(2, Message.loadStoredMessages(file));
+        assertEquals(Arrays.asList(T2, T5), Message.storedMessageTexts());
+        assertEquals(Arrays.asList("1000000002", "1000000005"), Message.messageIDs());
+        assertEquals(0, Message.loadStoredMessages(file)); // no duplicates on a second read
+    }
 }

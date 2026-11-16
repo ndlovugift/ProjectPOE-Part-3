@@ -3,9 +3,12 @@ package quickchat;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Message {
@@ -47,6 +50,15 @@ public class Message {
         this.message = message;
         this.messageHash = createMessageHash();
         this.sender = currentSender;
+    }
+
+    private Message(String messageID, int messageNumber, String sender, String recipient, String message) {
+        this.messageID = messageID;
+        this.messageNumber = messageNumber;
+        this.recipient = recipient;
+        this.message = message;
+        this.messageHash = createMessageHash();
+        this.sender = sender;
     }
 
     public static String generateMessageID() {
@@ -170,6 +182,58 @@ public class Message {
 
     public static void setSender(String name) { currentSender = name; }
     public static void setStorageFile(File file) { storageFile = file; }
+
+    /**
+     * Reads the JSON file written by storeMessage() back into the Stored Messages array.
+     * Messages already in the array (same message ID) are skipped so nothing is duplicated.
+     *
+     * Reference: Oracle (2024) Java SE API - java.util.regex.Pattern and Matcher.
+     * https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html
+     * Reference: Oracle (2024) Java SE API - java.nio.file.Files.readAllBytes.
+     * https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html
+     */
+    public static int loadStoredMessages(File file) {
+        if (!file.exists()) return 0;
+        String json;
+        try {
+            json = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            System.out.println("Could not read stored messages: " + e.getMessage());
+            return 0;
+        }
+        int loaded = 0;
+        // each stored message is one { ... } block in the file
+        Matcher block = Pattern.compile("\\{[^{}]*\\}", Pattern.DOTALL).matcher(json);
+        while (block.find()) {
+            String item = block.group();
+            String id = field(item, "messageID");
+            if (id == null || MESSAGE_IDS.contains(id)) continue;
+            String hash = field(item, "messageHash");
+            String sender = field(item, "sender");
+            Message m = new Message(id, numberFromHash(hash), sender == null ? "Developer" : sender,
+                    field(item, "recipient"), field(item, "message"));
+            STORED.add(m);
+            register(m);
+            loaded++;
+        }
+        return loaded;
+    }
+
+    /** Pulls the value of one "name": "value" pair out of a JSON block. */
+    private static String field(String block, String name) {
+        Matcher m = Pattern.compile("\"" + name + "\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"").matcher(block);
+        if (!m.find()) return null;
+        return m.group(1).replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t")
+                .replace("\\\"", "\"").replace("\\\\", "\\");
+    }
+
+    private static int numberFromHash(String hash) {
+        try {
+            return Integer.parseInt(hash.split(":")[1]);
+        } catch (RuntimeException e) {
+            return 0;
+        }
+    }
 
     /** Text of every sent message (the Sent Messages array). */
     public static List<String> sentMessageTexts() { return texts(SENT); }
